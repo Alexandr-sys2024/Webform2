@@ -1,28 +1,32 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash
 from app import app
 
 # Переменная для хранения данных анкеты
 user_data = []
 
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
         # Получаем данные из формы
-        name = request.form.get("name")
-        city = request.form.get("city")
-        hobby = request.form.get("hobby")
-        age = request.form.get("age")
+        name = request.form.get("name").strip()
+        city = request.form.get("city").strip()
+        hobby = request.form.get("hobby").strip()
+        age = request.form.get("age").strip()
 
-        # Сохраняем данные анкеты в список, если все поля заполнены
-        if name and city and hobby and age:
+        # Проверяем, что все поля заполнены и возраст — число
+        if not name or not city or not hobby or not age:
+            flash("Все поля должны быть заполнены!", "danger")
+        elif not age.isdigit() or int(age) <= 0:
+            flash("Возраст должен быть положительным числом!", "warning")
+        else:
+            # Сохраняем данные анкеты в список
             user_data.append({
                 "name": name,
                 "city": city,
                 "hobby": hobby,
-                "age": age
+                "age": int(age)
             })
+            flash("Анкета успешно отправлена!", "success")
             return redirect(url_for("index"))
-
-    # Передаем данные анкеты в шаблон для отображения
+    
     return render_template("blog.html", user_data=user_data)
